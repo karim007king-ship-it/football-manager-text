@@ -1,19 +1,19 @@
-
 [app]
-
 title = مدير كرة القدم
 package.name = footballmanagertext
-package.domain = com.karim
+package.domain = org.test
 source.dir = .
-
-source.include_exts = py,kv,png,jpg,jpeg,atlas,db,ttf
-source.exclude_dirs = .git,.buildozer,bin,__pycache__
-
+source.include_exts = py,png,jpg,kv,atlas,db
 version = 1.0.0
-
-requirements = python3==3.12.10,hostpython3==3.12.10,kivy==2.3.0
+requirements = python3,kivy==2.3.0,pyjnius
+orientation = portrait
+fullscreen = 0
+android.permissions = WRITE_EXTERNAL_STORAGE
+android.api = 33
+android.minapi = 24
+android.archs = arm64-v8a
+android.accept_sdk_license = True
 p4a.branch = master
-
 orientation = portrait
 fullscreen = 0
 
