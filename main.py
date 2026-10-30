@@ -6,13 +6,18 @@ from kivy.uix.textinput import TextInput
 from kivy.core.window import Window
 from kivy.utils import get_color_from_hex
 from engine import GameEngine
+import os
 
 Window.clearcolor = get_color_from_hex("#0F1A24")
 
 class FootballManagerApp(App):
     def build(self):
         try:
-            self.engine = GameEngine("football_manager_apk.db")
+            db_path = os.path.join(
+    self.user_data_dir,
+    "football_manager_apk.db"
+)
+self.engine = GameEngine(db_path) 
             self.log_text = "مرحباً بك في مدير كرة القدم!\nاضغط على الأزرار في الأسفل للبدء.\n"
         except Exception as e:
             self.engine = None
