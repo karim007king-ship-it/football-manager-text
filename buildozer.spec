@@ -12,3 +12,4 @@ android.permissions = WRITE_EXTERNAL_STORAGE
 android.api = 33
 android.minapi = 24
 android.archs = arm64-v8a
+p4a.python_version = 3.10
