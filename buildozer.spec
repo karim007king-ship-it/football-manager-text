@@ -11,7 +11,8 @@ source.exclude_dirs = .git,.buildozer,bin,__pycache__
 
 version = 1.0.0
 
-requirements = python3,kivy==2.3.0
+requirements = python3==3.12.10,hostpython3==3.12.10,kivy==2.3.0
+p4a.branch = master
 
 orientation = portrait
 fullscreen = 0
