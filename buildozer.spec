@@ -1,4 +1,5 @@
-[app]
+buildoze
+[app] 
 title = مدير كرة القدم
 package.name = footballmanagertext
 package.domain = org.test
