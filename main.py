@@ -11,14 +11,14 @@ import os
 Window.clearcolor = get_color_from_hex("#0F1A24")
 
 class FootballManagerApp(App):
-    def build(self):
+        def build(self):
         try:
             db_path = os.path.join(
-    self.user_data_dir,
-    "football_manager_apk.db"
-)
-self.engine = GameEngine(db_path) 
-            self.log_text = "مرحباً بك في مدير كرة القدم!\nاضغط على الأزرار في الأسفل للبدء.\n"
+                self.user_data_dir,
+                "football_manager_apk.db"
+            )
+            self.engine = GameEngine(db_path)
+            self.log_text = "مرحباً بك في مدير كرة القدم!\nاضغط على الأزرار في الأسفل للبدء."
         except Exception as e:
             self.engine = None
             self.log_text = f"خطأ في التحميل: {e}\n"
