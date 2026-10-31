@@ -47,13 +47,21 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           buildozer -v android debug 2>&1 | tee build.log
 
-      - name: Extract compiler errors
+      
+      - name: Extract Kivy failure details
         if: always()
         run: |
-          echo "===== COMPILER ERRORS ====="
-          grep -n -B 10 -A 10 -E \
-          'fatal error:|clang: error:|error:.*(file not found|undeclared|unknown type|no member)' \
-          build.log | tail -n 150 || true
+          echo "===== cgl_gl.c LOCATIONS ====="
+          grep -n 'cgl_gl.c' build.log | tail -n 15 || true
+
+          echo "===== KIVY COMPILER ERRORS ====="
+          grep -n -B 15 -A 20 -E \
+          'cgl_gl.c|fatal error:|error:|Cython.Compiler.Errors|returned non-zero exit status' \
+          build.log | tail -n 250 || true
+
+          echo "===== LAST 100 LINES ====="
+          tail -n 100 build.log
+
 
 
       - name: Upload build log
