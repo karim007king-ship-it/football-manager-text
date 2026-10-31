@@ -48,11 +48,18 @@ jobs:
           buildozer -v android debug 2>&1 | tee build.log
 
       
-      - name: Extract Kivy failure details
+      
+      - name: Extract final build errors
         if: always()
         run: |
-          echo "===== cgl_gl.c LOCATIONS ====="
-          grep -n 'cgl_gl.c' build.log | tail -n 15 || true
+          echo "===== LAST BUILD ERRORS ====="
+          grep -ni -B 5 -A 10 -E \
+          'error:|fatal error:|exception|failed|traceback|exit status 1' \
+          build.log | tail -n 100 || true
+
+          echo "===== FINAL BUILD LOG ====="
+          tail -n 60 build.log
+
 
           echo "===== KIVY COMPILER ERRORS ====="
           grep -n -B 15 -A 20 -E \
