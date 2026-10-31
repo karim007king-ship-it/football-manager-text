@@ -50,19 +50,13 @@ jobs:
       
       
       
-      
-      - name: Extract exact compiler failure
+          - name: Find real compiler errors
         if: always()
         run: |
-          n=$(grep -n 'returned non-zero exit status 1' build.log | tail -n 1 | cut -d: -f1)
-          if [ -n "$n" ]; then
-            start=$((n-45))
-            echo "===== EXACT FAILURE AREA ====="
-            sed -n "${start},${n}p" build.log
-          else
-            echo "Failure marker not found"
-            tail -n 50 build.log
-          fi
+          echo "===== COMPILER ERRORS ====="
+          grep -n -i -E 'error:|fatal error:|undefined reference|killed|no such file|cgl_gl.c:' build.log | tail -n 60 || true
+          echo "===== CGL GL REFERENCES ====="
+          grep -n -B 8 -A 12 'cgl_gl.c' build.log | tail -n 100 || true
 
 
 
