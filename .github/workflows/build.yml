@@ -52,7 +52,7 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           buildozer -v android debug 2>&1 | tee build.log
 
-      - name: Find real compiler errors
+            - name: Find real compiler errors
         if: always()
         run: |
           echo "===== COMPILER ERRORS ====="
@@ -61,7 +61,16 @@ jobs:
           echo "===== CGL GL REFERENCES ====="
           grep -n -B 8 -A 12 'cgl_gl.c' build.log | tail -n 100 || true
 
-            - name: Upload APK
+      - name: Upload build log
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: build-log
+          path: build.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload APK
         if: success()
         uses: actions/upload-artifact@v6
         with:
