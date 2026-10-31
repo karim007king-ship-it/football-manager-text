@@ -63,27 +63,9 @@ jobs:
 
       - name: Upload build log
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: build-log
-          path: build.log
-          if-no-files-found: ignore
-          retention-days: 7
-
-      -      - name: Upload build log
-        if: always()
         uses: actions/upload-artifact@v6
         with:
           name: build-log
           path: build.log
           if-no-files-found: ignore
-          retention-days: 7
-
-      - name: Upload APK
-        if: success()
-        uses: actions/upload-artifact@v6
-        with:
-          name: Football-Manager-APK
-          path: bin/*.apk
-          if-no-files-found: error
           retention-days: 7
