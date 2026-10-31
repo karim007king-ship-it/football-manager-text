@@ -49,25 +49,18 @@ jobs:
 
       
       
-      - name: Extract final build errors
+      
+      - name: Find exact build failure
         if: always()
         run: |
-          echo "===== LAST BUILD ERRORS ====="
-          grep -ni -B 5 -A 10 -E \
-          'error:|fatal error:|exception|failed|traceback|exit status 1' \
-          build.log | tail -n 100 || true
+          echo "===== LAST ERROR MESSAGES ====="
+          grep -ni -B 3 -A 5 -E \
+          'error:|fatal error:|returned non-zero exit status|subprocess-exited-with-error|Backend subprocess exited' \
+          build.log | tail -n 60 || true
 
-          echo "===== FINAL BUILD LOG ====="
-          tail -n 60 build.log
+          echo "===== KIVY FAILURE ====="
+          grep -ni -B 8 -A 12 'cgl_gl.c' build.log | tail -n 50 || true
 
-
-          echo "===== KIVY COMPILER ERRORS ====="
-          grep -n -B 15 -A 20 -E \
-          'cgl_gl.c|fatal error:|error:|Cython.Compiler.Errors|returned non-zero exit status' \
-          build.log | tail -n 250 || true
-
-          echo "===== LAST 100 LINES ====="
-          tail -n 100 build.log
 
 
 
