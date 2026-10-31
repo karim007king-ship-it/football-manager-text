@@ -11,7 +11,7 @@ import os
 Window.clearcolor = get_color_from_hex("#0F1A24")
 
 class FootballManagerApp(App):
-        def build(self):
+    def build(self):
         try:
             db_path = os.path.join(
                 self.user_data_dir,
