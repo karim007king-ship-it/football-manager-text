@@ -61,11 +61,11 @@ jobs:
           echo "===== CGL GL REFERENCES ====="
           grep -n -B 8 -A 12 'cgl_gl.c' build.log | tail -n 100 || true
 
-      - name: Upload build log
-        if: always()
+            - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v6
         with:
-          name: build-log
-          path: build.log
-          if-no-files-found: ignore
+          name: Football-Manager-APK
+          path: bin/*.apk
+          if-no-files-found: error
           retention-days: 7
