@@ -52,7 +52,7 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           buildozer -v android debug 2>&1 | tee build.log
 
-            - name: Find real compiler errors
+      - name: Find real compiler errors
         if: always()
         run: |
           echo "===== COMPILER ERRORS ====="
