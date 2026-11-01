@@ -1,6 +1,6 @@
 [app]
 
-title = Football Manager
+title = Kivy Diagnostic
 
 package.name = footballmanagertext
 
@@ -8,13 +8,13 @@ package.domain = org.test
 
 source.dir = .
 
-source.include_exts = py,png,jpg,jpeg,kv,atlas,db,ttf
+source.include_exts = py,png,jpg,jpeg,kv,atlas
 
 source.exclude_dirs = .git,.buildozer,bin,__pycache__
 
-version = 1.0.0
+version = 1.0.1
 
-requirements = python3==3.12.10,hostpython3==3.12.10,kivy==2.3.1,arabic-reshaper==3.0.0,python-bidi==0.4.2
+requirements = python3==3.12.10,hostpython3==3.12.10,kivy==2.3.1
 
 orientation = portrait
 
