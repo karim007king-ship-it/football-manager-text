@@ -1,179 +1,110 @@
-import os
-import traceback
+"""Mise en forme du texte arabe pour Kivy, sans dépendance externe.
+ar(text) : relie les lettres arabes puis inverse l'ordre visuel (RTL)."""
+import unicodedata
 
-from kivy.app import App
-from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.uix.button import Button
-from kivy.uix.textinput import TextInput
-from kivy.core.window import Window
-from kivy.utils import get_color_from_hex
+_FORMS = {}  # lettre de base -> {"isolated","final","initial","medial"}
+_LIGA = {}   # (lam, alef-variante) -> {"isolated","final"}
 
-Window.clearcolor = get_color_from_hex("#0F1A24")
+for _cp in list(range(0xFE70, 0xFEFD)):
+    _d = unicodedata.decomposition(chr(_cp))
+    if not _d.startswith("<"):
+        continue
+    _parts = _d.split()
+    _kind = _parts[0].strip("<>")
+    _base = [chr(int(x, 16)) for x in _parts[1:]]
+    if _kind not in ("isolated", "final", "initial", "medial"):
+        continue
+    if len(_base) == 1:
+        _FORMS.setdefault(_base[0], {})[_kind] = chr(_cp)
+    elif len(_base) == 2 and _base[0] == "\u0644":
+        _LIGA.setdefault(tuple(_base), {})[_kind] = chr(_cp)
 
-# ---- Police arabe (à placer dans fonts/NotoNaskhArabic-Regular.ttf) ----
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-FONT_PATH = os.path.join(BASE_DIR, "fonts", "NotoNaskhArabic-Regular.ttf")
-FONT = FONT_PATH if os.path.exists(FONT_PATH) else "Roboto"
+# Lettres qui ne se lient pas à la lettre suivante
+_NO_NEXT = set("\u0627\u0622\u0623\u0625\u062F\u0630\u0631\u0632\u0648\u0629\u0621\u0624\u0649")
+_TASHKEEL = set(chr(c) for c in range(0x064B, 0x0653))
 
-# ---- Mise en forme du texte arabe (liaison des lettres + sens RTL) ----
-try:
-    import arabic_reshaper
-    from bidi.algorithm import get_display
-    _HAS_AR = True
-except Exception:
-    _HAS_AR = False
+
+def _is_ar(c):
+    return c in _FORMS or c in _TASHKEEL or "\u0600" <= c <= "\u06FF"
+
+
+def _shape(line):
+    chars = list(line)
+    out = []
+    i = 0
+    n = len(chars)
+
+    def prev_joins(idx):
+        j = idx - 1
+        while j >= 0 and chars[j] in _TASHKEEL:
+            j -= 1
+        return j >= 0 and chars[j] in _FORMS and chars[j] not in _NO_NEXT
+
+    def next_joins(idx):
+        j = idx + 1
+        while j < n and chars[j] in _TASHKEEL:
+            j += 1
+        return j < n and chars[j] in _FORMS
+
+    while i < n:
+        c = chars[i]
+        if c not in _FORMS:
+            out.append(c)
+            i += 1
+            continue
+        # ligature lam + alef
+        if c == "\u0644" and i + 1 < n and (c, chars[i + 1]) in _LIGA:
+            lig = _LIGA[(c, chars[i + 1])]
+            out.append(lig.get("final" if prev_joins(i) else "isolated", c))
+            i += 2
+            continue
+        p = prev_joins(i)
+        nx = c not in _NO_NEXT and next_joins(i)
+        f = _FORMS[c]
+        if p and nx:
+            kind = "medial"
+        elif p:
+            kind = "final"
+        elif nx:
+            kind = "initial"
+        else:
+            kind = "isolated"
+        out.append(f.get(kind) or f.get("isolated") or c)
+        i += 1
+    return out
+
+
+def _is_ltr(c):
+    return c.isascii() and c.isalnum()
+
+
+def _visual(chars):
+    """Ordre visuel simple : on inverse la ligne, mais les mots latins et
+    les nombres gardent leur sens de lecture."""
+    runs = []  # (is_ltr, [chars])
+    for c in chars:
+        l = _is_ltr(c)
+        if runs and runs[-1][0] == l:
+            runs[-1][1].append(c)
+        elif (not l) and c in ".,:/-%" and runs and runs[-1][0]:
+            runs[-1][1].append(c)   # 12,000 / 3-1 restent ensemble
+        else:
+            runs.append((l, [c]))
+    mirror = {"(": ")", ")": "(", "[": "]", "]": "[", "<": ">", ">": "<"}
+    res = []
+    for l, r in reversed(runs):
+        res.extend(r if l else [mirror.get(x, x) for x in reversed(r)])
+    return "".join(res)
 
 
 def ar(text):
-    """Rend le texte arabe lisible dans Kivy (ligne par ligne)."""
-    if not _HAS_AR:
-        return text
     out = []
     for line in str(text).split("\n"):
-        try:
-            out.append(get_display(arabic_reshaper.reshape(line)))
-        except Exception:
+        if any(_is_ar(c) for c in line):
+            try:
+                out.append(_visual(_shape(line)))
+            except Exception:
+                out.append(line)
+        else:
             out.append(line)
     return "\n".join(out)
-
-
-class FootballManagerApp(App):
-
-    def write_startup_log(self, message):
-        try:
-            log_path = os.path.join(self.user_data_dir, "startup_error.log")
-            with open(log_path, "a", encoding="utf-8") as f:
-                f.write("\n" + message + "\n")
-        except Exception:
-            pass
-
-    def build(self):
-        self.engine = None
-        self.write_startup_log("build() atteint")
-
-        try:
-            from engine import GameEngine
-            db_path = os.path.join(self.user_data_dir, "football_manager_apk.db")
-            self.engine = GameEngine(db_path)
-            log_text = ar(
-                "مرحباً بك في مدير كرة القدم!\n"
-                "اضغط على الأزرار في الأسفل للبدء."
-            )
-        except Exception:
-            error_text = traceback.format_exc()
-            self.write_startup_log("Échec moteur/base:\n" + error_text)
-            log_text = "Erreur au chargement du jeu:\n\n" + error_text
-
-        root = BoxLayout(orientation="vertical", padding=10, spacing=10)
-
-        self.output = TextInput(
-            text=log_text,
-            readonly=True,
-            background_color=(0, 0, 0, 1),
-            foreground_color=(0.8, 0.8, 0.8, 1),
-            font_name=FONT,
-            font_size="14sp",
-        )
-        root.add_widget(self.output)
-
-        self.buttons_layout = GridLayout(
-            cols=2, spacing=5, size_hint_y=None, height=300
-        )
-
-        # Pas d'emojis : aucune police embarquée ne les affiche
-        buttons = [
-            ("خوض المباراة", self.play_match),
-            ("تقديم أسبوع", self.advance_week),
-            ("الفريق", self.show_squad),
-            ("الترتيب", self.show_standings),
-            ("الميزانية", self.show_finance),
-            ("الرعاية", self.show_sponsor),
-            ("إغلاق", self.stop),
-        ]
-        for button_text, callback in buttons:
-            btn = Button(
-                text=ar(button_text),
-                font_name=FONT,
-                font_size="18sp",
-                background_color=(0.2, 0.6, 0.2, 1),
-            )
-            btn.bind(on_release=callback)
-            self.buttons_layout.add_widget(btn)
-
-        root.add_widget(self.buttons_layout)
-        return root
-
-    def update_log(self, text):
-        self.output.text += "\n" + ar(text)
-        self.output.cursor = (0, len(self.output.text))
-
-    def advance_week(self, instance):
-        if not self.engine:
-            self.update_log("المحرك غير متاح بسبب خطأ التحميل.")
-            return
-        try:
-            self.update_log("جاري تقديم أسبوع...")
-            log = self.engine.advance_days(7)
-            for item in log:
-                if item.get("type") == "match":
-                    self.update_log(
-                        "- " + str(item.get("text", ""))
-                        + "\n" + str(item.get("stats", ""))
-                    )
-            self.update_log("تم تقديم الأسبوع.")
-        except Exception:
-            error_text = traceback.format_exc()
-            self.write_startup_log("Erreur advance_week:\n" + error_text)
-            self.output.text += "\n" + error_text
-
-    def play_match(self, instance):
-        self.update_log("لعرض المباراة التفاعلية، استخدم زر تقديم أسبوع.")
-
-    def show_squad(self, instance):
-        if not self.engine:
-            self.update_log("المحرك غير متاح.")
-            return
-        try:
-            self.update_log("--- الفريق ---")
-            for p in self.engine.get_squad()[:5]:
-                self.update_log("[{}] {} | OVR {}".format(
-                    p.get("pos", ""), p.get("name", ""), p.get("ovr", "")))
-        except Exception:
-            self.output.text += "\n" + traceback.format_exc()
-
-    def show_standings(self, instance):
-        if not self.engine:
-            self.update_log("المحرك غير متاح.")
-            return
-        try:
-            self.update_log("--- الترتيب ---")
-            for i, row in enumerate(self.engine.get_standings()[:4], 1):
-                self.update_log("{}. {} - {} نقطة".format(
-                    i, row.get("name", ""), row.get("pts", "")))
-        except Exception:
-            self.output.text += "\n" + traceback.format_exc()
-
-    def show_finance(self, instance):
-        if not self.engine:
-            self.update_log("المحرك غير متاح.")
-            return
-        try:
-            d = self.engine.get_dashboard()
-            self.update_log("الميزانية: {:,.0f} د.ت".format(d["budget"]))
-        except Exception:
-            self.output.text += "\n" + traceback.format_exc()
-
-    def show_sponsor(self, instance):
-        if not self.engine:
-            self.update_log("المحرك غير متاح.")
-            return
-        try:
-            status = self.engine.get_sponsorship_status()
-            self.update_log("حالة الرعاية: {}".format(status[0]))
-        except Exception:
-            self.output.text += "\n" + traceback.format_exc()
-
-
-if __name__ == "__main__":
-    FootballManagerApp().run()
