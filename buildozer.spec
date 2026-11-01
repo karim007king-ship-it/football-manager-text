@@ -1,8 +1,8 @@
 [app]
 
-title = Kivy Diagnostic
+title = Kivy No-HWUI Diagnostic
 
-package.name = kivydiagnostic
+package.name = kivynohwui
 
 package.domain = org.test
 
@@ -27,6 +27,8 @@ android.minapi = 26
 android.archs = arm64-v8a
 
 android.accept_sdk_license = True
+
+android.extra_manifest_application_arguments = ./extra_manifest_application_arguments.xml
 
 p4a.branch = master
 
