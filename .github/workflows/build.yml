@@ -2,6 +2,8 @@ name: Build Text APK
 
 on:
   push:
+    branches-ignore:
+      - diagnostic/native-android-startup
   workflow_dispatch:
 
 jobs:
