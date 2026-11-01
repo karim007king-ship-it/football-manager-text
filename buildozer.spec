@@ -2,7 +2,7 @@
 
 title = Kivy Diagnostic
 
-package.name = footballmanagertext
+package.name = kivydiagnostic
 
 package.domain = org.test
 
@@ -12,7 +12,7 @@ source.include_exts = py,png,jpg,jpeg,kv,atlas
 
 source.exclude_dirs = .git,.buildozer,bin,__pycache__
 
-version = 1.0.1
+version = 1.0.0
 
 requirements = python3==3.12.10,hostpython3==3.12.10,kivy==2.3.1
 
