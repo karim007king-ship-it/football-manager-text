@@ -52,6 +52,19 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           buildozer -v android debug 2>&1 | tee build.log
 
+      - name: Inspect generated AndroidManifest
+        if: always()
+        run: |
+          MANIFEST=".buildozer/android/platform/build-arm64-v8a/dists/kivynohwui/src/main/AndroidManifest.xml"
+          if [ -f "$MANIFEST" ]; then
+            echo "===== GENERATED ANDROID MANIFEST ====="
+            nl -ba "$MANIFEST"
+            echo "===== XML VALIDATION ====="
+            python -c 'import xml.etree.ElementTree as ET; ET.parse("'"$MANIFEST"'"); print("XML is valid")' || true
+          else
+            echo "Generated AndroidManifest.xml was not found"
+          fi
+
       - name: Find real compiler errors
         if: always()
         run: |
