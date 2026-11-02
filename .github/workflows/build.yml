@@ -52,18 +52,18 @@ jobs:
           export PATH="$HOME/.local/bin:$PATH"
           buildozer -v android debug 2>&1 | tee build.log
 
-      - name: Inspect generated AndroidManifest
-        if: always()
+      - name: Verify hardware acceleration setting in manifest and APK
+        if: success()
+        shell: bash
         run: |
+          set -euo pipefail
           MANIFEST=".buildozer/android/platform/build-arm64-v8a/dists/kivynohwui/src/main/AndroidManifest.xml"
-          if [ -f "$MANIFEST" ]; then
-            echo "===== GENERATED ANDROID MANIFEST ====="
-            nl -ba "$MANIFEST"
-            echo "===== XML VALIDATION ====="
-            python -c 'import xml.etree.ElementTree as ET; ET.parse("'"$MANIFEST"'"); print("XML is valid")' || true
-          else
-            echo "Generated AndroidManifest.xml was not found"
-          fi
+          APK="$(find bin -maxdepth 1 -type f -name '*.apk' -print -quit)"
+          SDK="$HOME/.buildozer/android/platform/android-sdk"
+          test -n "$APK"
+          echo "===== GENERATED ANDROID MANIFEST ====="
+          nl -ba "$MANIFEST"
+          python verify_manifest.py --manifest "$MANIFEST" --apk "$APK" --sdk "$SDK"
 
       - name: Find real compiler errors
         if: always()
