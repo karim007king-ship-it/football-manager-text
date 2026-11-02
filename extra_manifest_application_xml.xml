@@ -1,0 +1,3 @@
+<activity
+    android:name="org.kivy.android.PythonActivity"
+    android:hardwareAccelerated="false" />
