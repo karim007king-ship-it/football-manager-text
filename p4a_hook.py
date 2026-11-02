@@ -1,4 +1,4 @@
-"""Patch the generated p4a manifest before Gradle assembles the APK."""
+"""Patch the generated p4a manifest immediately before Gradle assembles the APK."""
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
@@ -39,8 +39,8 @@ def _patch_manifest(path: Path) -> None:
     print(f"VERIFIED: {TARGET_ACTIVITY} hardwareAccelerated=false in {path}")
 
 
-def after_apk_build(toolchain) -> None:
-    """Runs after p4a generates the Gradle project, before Gradle assembles APK."""
+def before_apk_assemble(toolchain) -> None:
+    """Runs after Gradle project generation and immediately before Gradle assembly."""
     dist_dir = Path(toolchain._dist.dist_dir)
     candidates = [
         dist_dir / "src" / "main" / "AndroidManifest.xml",
