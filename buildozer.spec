@@ -28,7 +28,7 @@ android.archs = arm64-v8a
 
 android.accept_sdk_license = True
 
-android.extra_manifest_application_arguments = ./extra_manifest_application_arguments.xml
+p4a.hook = ./p4a_hook.py
 
 p4a.branch = master
 
